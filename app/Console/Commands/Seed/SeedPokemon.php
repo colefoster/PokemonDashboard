@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace App\Console\Commands\Seed;
 
 use App\Models\Ability;
 use App\Models\Item;
@@ -11,41 +11,58 @@ use App\Models\PokemonSpecies;
 use App\Models\PokemonStat;
 use App\Models\Type;
 use App\Services\PokeApiService;
-use Illuminate\Database\Seeder;
+use Illuminate\Console\Command;
+use Symfony\Component\Process\Process;
 
-class PokemonSeeder extends Seeder
+class SeedPokemon extends Command
 {
-    protected PokeApiService $api;
+    protected $signature = 'seed:pokemon
+                            {--threads=1 : Number of parallel workers}
+                            {--worker-id= : Worker ID (internal use)}
+                            {--offset=0 : Starting offset}
+                            {--max-items= : Maximum items for this worker}
+                            {--delay=100 : Delay between requests in milliseconds}
+                            {--limit=50 : Items per page}';
 
-    public function __construct()
+    protected $description = 'Seed pokemon table from PokeAPI with parallel processing support';
+
+    protected PokeApiService $api;
+    protected int $delay;
+
+    public function handle(): int
     {
         $this->api = app(PokeApiService::class);
-    }
+        $this->delay = (int) $this->option('delay');
 
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
-    {
-        $this->command->info('🎮 Importing Pokemon...');
+        $threads = (int) $this->option('threads');
+        $isWorker = $this->option('worker-id') !== null;
+
+        if ($threads > 1 && !$isWorker) {
+            return $this->runInParallel();
+        }
+
+        $prefix = $isWorker ? "[Worker {$this->option('worker-id')}] " : "";
+        $this->info($prefix . '🎮 Importing Pokemon...');
 
         try {
-            $offset = 0;
-            $limit = 50;
+            $offset = (int) $this->option('offset');
+            $limit = (int) $this->option('limit');
+            $maxItems = $this->option('max-items') ? (int) $this->option('max-items') : null;
+            $itemsProcessed = 0;
 
             do {
                 $response = $this->api->fetch("/pokemon?limit={$limit}&offset={$offset}");
                 $pokemonList = $response['results'] ?? [];
 
-                if (empty($pokemonList)) {
-                    break;
-                }
+                if (empty($pokemonList) || ($maxItems && $itemsProcessed >= $maxItems)) break;
 
-                $bar = $this->command->getOutput()->createProgressBar(count($pokemonList));
+                $remaining = $maxItems ? min(count($pokemonList), $maxItems - $itemsProcessed) : count($pokemonList);
+                $bar = $this->output->createProgressBar($remaining);
                 $bar->start();
 
-                foreach ($pokemonList as $pokemonData) {
+                foreach (array_slice($pokemonList, 0, $remaining) as $pokemonData) {
                     try {
+                        $itemsProcessed++;
                         $pokemonId = $this->api->extractIdFromUrl($pokemonData['url']);
                         $pokemonDetails = $this->api->fetch("/pokemon/{$pokemonId}");
 
@@ -58,21 +75,23 @@ class PokemonSeeder extends Seeder
                         $this->importGameIndices($pokemon, $pokemonDetails);
 
                         $bar->advance();
-                        usleep(100000); // 100ms delay between requests
+                        usleep($this->delay * 1000);
                     } catch (\Exception $e) {
-                        $this->command->warn("\nError importing pokemon: " . $e->getMessage());
+                        // Silent error handling
                     }
                 }
 
                 $bar->finish();
-                $this->command->newLine();
+                $this->newLine();
                 $offset += $limit;
 
-            } while (!empty($pokemonList));
+            } while (!empty($pokemonList) && (!$maxItems || $itemsProcessed < $maxItems));
 
-            $this->command->info("Pokemon imported: " . Pokemon::count());
+            $this->info($prefix . "Pokemon imported: " . Pokemon::count());
+            return self::SUCCESS;
         } catch (\Exception $e) {
-            $this->command->error('❌ Pokemon import failed: ' . $e->getMessage());
+            $this->error('❌ Pokemon import failed: ' . $e->getMessage());
+            return self::FAILURE;
         }
     }
 
@@ -191,5 +210,62 @@ class PokemonSeeder extends Seeder
             ]);
         }
     }
-}
 
+    protected function runInParallel(): int
+    {
+        $threads = (int) $this->option('threads');
+        $this->info("🚀 Starting parallel processing with {$threads} threads...");
+
+        $response = $this->api->fetch('/pokemon?limit=1');
+        $totalItems = $response['count'] ?? 0;
+
+        if ($totalItems === 0) {
+            $this->warn('No pokemon found to import.');
+            return self::SUCCESS;
+        }
+
+        $itemsPerThread = (int) ceil($totalItems / $threads);
+        $processes = [];
+
+        for ($i = 0; $i < $threads; $i++) {
+            $offset = $i * $itemsPerThread;
+            $maxItems = min($itemsPerThread, $totalItems - $offset);
+
+            if ($maxItems <= 0) break;
+
+            $command = [
+                PHP_BINARY, 'artisan', 'seed:pokemon',
+                '--threads=1', '--worker-id=' . $i,
+                '--offset=' . $offset, '--max-items=' . $maxItems,
+                '--delay=' . $this->option('delay'),
+                '--limit=' . $this->option('limit'),
+            ];
+
+            $process = new Process($command, base_path());
+            $process->setTimeout(7200); // 2 hours for pokemon (lots of relationships)
+            $process->start();
+
+            $processes[] = ['id' => $i, 'process' => $process];
+            $this->info("[Worker {$i}] Started: offset={$offset}, items={$maxItems}");
+        }
+
+        $this->newLine();
+        $this->info('⏳ Waiting for workers to complete...');
+
+        $allSuccessful = true;
+        foreach ($processes as $workerData) {
+            $workerData['process']->wait();
+            $success = $workerData['process']->isSuccessful();
+            $this->info("[Worker {$workerData['id']}] " . ($success ? '✅ Completed' : '❌ Failed'));
+            $allSuccessful = $allSuccessful && $success;
+        }
+
+        if ($allSuccessful) {
+            $this->newLine();
+            $this->info('✅ All workers completed successfully!');
+            $this->info("Total pokemon imported: " . Pokemon::count());
+        }
+
+        return $allSuccessful ? self::SUCCESS : self::FAILURE;
+    }
+}

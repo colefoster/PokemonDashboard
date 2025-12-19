@@ -6,15 +6,18 @@ use App\Models\Evolution;
 use App\Models\EvolutionChain;
 use App\Models\PokemonSpecies;
 use App\Services\PokeApiService;
+use App\Services\SeederProgressService;
 use Illuminate\Database\Seeder;
 
 class EvolutionChainSeeder extends Seeder
 {
     protected PokeApiService $api;
+    protected SeederProgressService $progress;
 
     public function __construct()
     {
         $this->api = app(PokeApiService::class);
+        $this->progress = app(SeederProgressService::class);
     }
 
     /**
@@ -27,6 +30,12 @@ class EvolutionChainSeeder extends Seeder
         try {
             $offset = 0;
             $limit = 100;
+
+            // Get total count first
+            $initialResponse = $this->api->fetch("/evolution-chain?limit=1&offset=0");
+            $totalCount = $initialResponse['count'] ?? 0;
+
+            $this->progress->start('evolution_chains', $totalCount);
 
             do {
                 $response = $this->api->fetch("/evolution-chain?limit={$limit}&offset={$offset}");
@@ -51,10 +60,14 @@ class EvolutionChainSeeder extends Seeder
 
                         $this->parseEvolutionChain($evolutionChain, $chainDetails['chain']);
 
+                        $this->progress->advance("Importing evolution chain #{$chainId}");
+                        $this->progress->success();
+
                         $bar->advance();
                         usleep(100000); // 100ms delay between requests
                     } catch (\Exception $e) {
                         $this->command->warn("\nError importing evolution chain: " . $e->getMessage());
+                        $this->progress->error($e->getMessage());
                     }
                 }
 
@@ -65,8 +78,10 @@ class EvolutionChainSeeder extends Seeder
             } while (!empty($chains));
 
             $this->command->info("Evolution Chains imported: " . EvolutionChain::count());
+            $this->progress->complete('evolution_chains');
         } catch (\Exception $e) {
             $this->command->error('❌ Evolution Chain import failed: ' . $e->getMessage());
+            $this->progress->error($e->getMessage());
         }
     }
 

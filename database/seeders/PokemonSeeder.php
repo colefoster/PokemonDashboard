@@ -11,15 +11,18 @@ use App\Models\PokemonSpecies;
 use App\Models\PokemonStat;
 use App\Models\Type;
 use App\Services\PokeApiService;
+use App\Services\SeederProgressService;
 use Illuminate\Database\Seeder;
 
 class PokemonSeeder extends Seeder
 {
     protected PokeApiService $api;
+    protected SeederProgressService $progress;
 
     public function __construct()
     {
         $this->api = app(PokeApiService::class);
+        $this->progress = app(SeederProgressService::class);
     }
 
     /**
@@ -32,6 +35,12 @@ class PokemonSeeder extends Seeder
         try {
             $offset = 0;
             $limit = 50;
+
+            // Get total count first
+            $initialResponse = $this->api->fetch("/pokemon?limit=1&offset=0");
+            $totalCount = $initialResponse['count'] ?? 0;
+
+            $this->progress->start('pokemon', $totalCount);
 
             do {
                 $response = $this->api->fetch("/pokemon?limit={$limit}&offset={$offset}");
@@ -57,10 +66,14 @@ class PokemonSeeder extends Seeder
                         $this->syncItems($pokemon, $pokemonDetails);
                         $this->importGameIndices($pokemon, $pokemonDetails);
 
+                        $this->progress->advance("Importing pokemon: {$pokemonDetails['name']}");
+                        $this->progress->success();
+
                         $bar->advance();
                         usleep(100000); // 100ms delay between requests
                     } catch (\Exception $e) {
                         $this->command->warn("\nError importing pokemon: " . $e->getMessage());
+                        $this->progress->error($e->getMessage());
                     }
                 }
 
@@ -71,8 +84,10 @@ class PokemonSeeder extends Seeder
             } while (!empty($pokemonList));
 
             $this->command->info("Pokemon imported: " . Pokemon::count());
+            $this->progress->complete('pokemon');
         } catch (\Exception $e) {
             $this->command->error('❌ Pokemon import failed: ' . $e->getMessage());
+            $this->progress->error($e->getMessage());
         }
     }
 

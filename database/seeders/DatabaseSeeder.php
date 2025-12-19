@@ -30,11 +30,10 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Guest User',
             'email' => 'guest@example.com',
-            'password' => 'password',
             'is_admin' => false,
         ]);
 
-        $this->command->info("✅ Users created successfully!");
+        $this->command->info("Admin and Guest Users created successfully!");
         $this->command->newLine();
 
         // Seed Pokemon data from PokeAPI with parallel processing
@@ -50,7 +49,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($commands as [$command, $label]) {
-            $this->command->info("📦 Seeding {$label}...");
+            $this->command->info("Seeding {$label}...");
 
             $result = $this->command->call($command, [
                 '--threads' => $threads,
@@ -59,7 +58,7 @@ class DatabaseSeeder extends Seeder
             ]);
 
             if ($result !== 0) {
-                $this->command->error("❌ Failed to seed {$label}");
+                $this->command->error("Failed to seed {$label}");
                 return;
             }
 
@@ -67,7 +66,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->command->newLine();
-        $this->command->info('✅ Database seeding completed successfully!');
+        $this->command->info('Database seeding completed successfully!');
     }
 }
 

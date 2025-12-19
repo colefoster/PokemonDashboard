@@ -4,15 +4,18 @@ namespace Database\Seeders;
 
 use App\Models\PokemonSpecies;
 use App\Services\PokeApiService;
+use App\Services\SeederProgressService;
 use Illuminate\Database\Seeder;
 
 class PokemonSpeciesSeeder extends Seeder
 {
     protected PokeApiService $api;
+    protected SeederProgressService $progress;
 
     public function __construct()
     {
         $this->api = app(PokeApiService::class);
+        $this->progress = app(SeederProgressService::class);
     }
 
     /**
@@ -25,6 +28,12 @@ class PokemonSpeciesSeeder extends Seeder
         try {
             $offset = 0;
             $limit = 100;
+
+            // Get total count first
+            $initialResponse = $this->api->fetch("/pokemon-species?limit=1&offset=0");
+            $totalCount = $initialResponse['count'] ?? 0;
+
+            $this->progress->start('species', $totalCount);
 
             do {
                 $response = $this->api->fetch("/pokemon-species?limit={$limit}&offset={$offset}");
@@ -60,10 +69,14 @@ class PokemonSpeciesSeeder extends Seeder
                             ]
                         );
 
+                        $this->progress->advance("Importing species: {$speciesDetails['name']}");
+                        $this->progress->success();
+
                         $bar->advance();
                         usleep(100000); // 100ms delay between requests
                     } catch (\Exception $e) {
                         $this->command->warn("\nError importing species: " . $e->getMessage());
+                        $this->progress->error($e->getMessage());
                     }
                 }
 
@@ -74,8 +87,10 @@ class PokemonSpeciesSeeder extends Seeder
             } while (!empty($speciesList));
 
             $this->command->info("Pokemon Species imported: " . PokemonSpecies::count());
+            $this->progress->complete('species');
         } catch (\Exception $e) {
             $this->command->error('❌ Pokemon Species import failed: ' . $e->getMessage());
+            $this->progress->error($e->getMessage());
         }
     }
 }

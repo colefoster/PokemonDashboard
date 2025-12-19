@@ -5,15 +5,18 @@ namespace Database\Seeders;
 use App\Models\Move;
 use App\Models\Type;
 use App\Services\PokeApiService;
+use App\Services\SeederProgressService;
 use Illuminate\Database\Seeder;
 
 class MoveSeeder extends Seeder
 {
     protected PokeApiService $api;
+    protected SeederProgressService $progress;
 
     public function __construct()
     {
         $this->api = app(PokeApiService::class);
+        $this->progress = app(SeederProgressService::class);
     }
 
     /**
@@ -26,6 +29,12 @@ class MoveSeeder extends Seeder
         try {
             $offset = 0;
             $limit = 100;
+
+            // Get total count first
+            $initialResponse = $this->api->fetch("/move?limit=1&offset=0");
+            $totalCount = $initialResponse['count'] ?? 0;
+
+            $this->progress->start('moves', $totalCount);
 
             do {
                 $response = $this->api->fetch("/move?limit={$limit}&offset={$offset}");
@@ -86,10 +95,14 @@ class MoveSeeder extends Seeder
                             ]
                         );
 
+                        $this->progress->advance("Importing move: {$moveDetails['name']}");
+                        $this->progress->success();
+
                         $bar->advance();
                         usleep(100000); // 100ms delay between requests
                     } catch (\Exception $e) {
                         $this->command->warn("\nError importing move: " . $e->getMessage());
+                        $this->progress->error($e->getMessage());
                     }
                 }
 
@@ -100,8 +113,10 @@ class MoveSeeder extends Seeder
             } while (!empty($moves));
 
             $this->command->info("Moves imported: " . Move::count());
+            $this->progress->complete('moves');
         } catch (\Exception $e) {
             $this->command->error('❌ Move import failed: ' . $e->getMessage());
+            $this->progress->error($e->getMessage());
         }
     }
 }

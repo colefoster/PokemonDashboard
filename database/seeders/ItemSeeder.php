@@ -4,15 +4,18 @@ namespace Database\Seeders;
 
 use App\Models\Item;
 use App\Services\PokeApiService;
+use App\Services\SeederProgressService;
 use Illuminate\Database\Seeder;
 
 class ItemSeeder extends Seeder
 {
     protected PokeApiService $api;
+    protected SeederProgressService $progress;
 
     public function __construct()
     {
         $this->api = app(PokeApiService::class);
+        $this->progress = app(SeederProgressService::class);
     }
 
     /**
@@ -25,6 +28,12 @@ class ItemSeeder extends Seeder
         try {
             $offset = 0;
             $limit = 100;
+
+            // Get total count first
+            $initialResponse = $this->api->fetch("/item?limit=1&offset=0");
+            $totalCount = $initialResponse['count'] ?? 0;
+
+            $this->progress->start('items', $totalCount);
 
             do {
                 $response = $this->api->fetch("/item?limit={$limit}&offset={$offset}");
@@ -60,10 +69,14 @@ class ItemSeeder extends Seeder
                             ]
                         );
 
+                        $this->progress->advance("Importing item: {$itemDetails['name']}");
+                        $this->progress->success();
+
                         $bar->advance();
                         usleep(100000); // 100ms delay between requests
                     } catch (\Exception $e) {
                         $this->command->warn("\nError importing item: " . $e->getMessage());
+                        $this->progress->error($e->getMessage());
                     }
                 }
 
@@ -74,8 +87,10 @@ class ItemSeeder extends Seeder
             } while (!empty($items));
 
             $this->command->info("Items imported: " . Item::count());
+            $this->progress->complete('items');
         } catch (\Exception $e) {
             $this->command->error('❌ Item import failed: ' . $e->getMessage());
+            $this->progress->error($e->getMessage());
         }
     }
 }

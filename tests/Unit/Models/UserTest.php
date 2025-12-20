@@ -13,12 +13,12 @@ class UserTest extends TestCase
     public function test_user_can_be_created(): void
     {
         $user = User::factory()->create([
-            'name' => 'Test User',
+            'name' => 'Administrator',
             'email' => 'test@example.com',
         ]);
 
         $this->assertDatabaseHas('users', [
-            'name' => 'Test User',
+            'name' => 'Administrator',
             'email' => 'test@example.com',
         ]);
     }

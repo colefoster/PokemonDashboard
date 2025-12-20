@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class AbilityResource extends Resource
 {
     protected static ?string $model = Ability::class;
+    protected static string|null|\UnitEnum $navigationGroup = 'Data';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

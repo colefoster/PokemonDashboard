@@ -23,6 +23,7 @@ class PokemonTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('api_id', 'asc')
             ->columns([
                 ColumnGroup::make('Basic Info', [
                     TextColumn::make('api_id')
@@ -34,7 +35,8 @@ class PokemonTable
                             return str_replace(" ", "-", (ucwords(str_replace("-", " ", $state))));
                         })
                         ->searchable()
-                        ->sortable(),
+                        ->sortable()
+                        ->width(50),
                     ImageColumn::make('sprite_front_default')
                         ->label('Sprite')
                         ->defaultImageUrl(asset('/images/3x-sprite-placeholder.png'))
@@ -55,12 +57,12 @@ class PokemonTable
                     TextColumn::make('height')
                         ->numeric()
                         ->toggleable()
-                        ->formatStateUsing(fn($state) => number_format($state / 10, 1) . " m")
+                        ->formatStateUsing(fn($state) => number_format($state, 1). " m")
                         ->sortable(),
                     TextColumn::make('weight')
                         ->numeric()
                         ->toggleable()
-                        ->formatStateUsing(fn($state) => number_format($state / 10, 1) . " kg")
+                        ->formatStateUsing(fn($state) => number_format($state, 1) . " kg")
                         ->sortable(),
                     TextColumn::make('species.generation')
                         ->label('Gen')

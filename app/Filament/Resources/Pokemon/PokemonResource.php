@@ -22,7 +22,7 @@ class PokemonResource extends Resource
 {
     protected static ?string $model = Pokemon::class;
 
-
+    protected static string|null|\UnitEnum $navigationGroup = 'Data';
     protected static ?int $navigationSort = -2;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

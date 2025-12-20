@@ -21,6 +21,7 @@ class AbilitiesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('api_id', 'asc')
             ->columns([
                 TextColumn::make('api_id')
                     ->numeric()

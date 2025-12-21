@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Items\Schemas;
 
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -33,14 +34,10 @@ class ItemInfolist
                 TextEntry::make('flavor_text')
                     ->placeholder('-')
                     ->columnSpanFull(),
-                TextEntry::make('sprite')
+                ImageEntry::make('sprite')
+                    ->imageSize(64)
                     ->placeholder('-'),
-                TextEntry::make('created_at')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->dateTime()
-                    ->placeholder('-'),
+
             ]);
     }
 }

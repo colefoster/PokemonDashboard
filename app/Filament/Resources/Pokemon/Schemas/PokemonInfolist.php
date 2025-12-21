@@ -14,10 +14,6 @@ use Filament\Schemas\Schema;
 class PokemonInfolist
 {
 
-
-    protected static ?string $title = 'Custom Page Title';
-
-
     public static function configure(Schema $schema): Schema
     {
         return $schema

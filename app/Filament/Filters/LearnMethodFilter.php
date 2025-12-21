@@ -49,10 +49,10 @@ class LearnMethodFilter
      * Get the ToggleButtons component with configured columns
      *
      * @param int|null $columns
-     * @param mixed $pokemon
+     * @param mixed|null $pokemon
      * @return ToggleButtons
      */
-    protected static function getToggleButtons(?int $columns, $pokemon = null): ToggleButtons
+    protected static function getToggleButtons(?int $columns, mixed $pokemon = null): ToggleButtons
     {
         // All possible learn method options with their labels
         $allMethods = [
@@ -70,7 +70,6 @@ class LearnMethodFilter
         $toggleButtons = ToggleButtons::make('learn_methods')
             ->label('Learn Method')
             ->options(function () use ($pokemon, $allMethods) {
-
                 // If Pokemon is provided, only show learn methods that exist in their move pool
                 if ($pokemon) {
                     $availableMethods = \Illuminate\Support\Facades\DB::table('move_pokemon')
@@ -85,11 +84,11 @@ class LearnMethodFilter
                         ->filter(fn($label, $key) => in_array($key, $availableMethods))
                         ->toArray();
                 }
-
                 // Otherwise show all methods
                 return $allMethods;
             })
-            ->multiple();
+            ->multiple()
+            ->colors(fn() => array_fill_keys(array_keys($allMethods), 'info'));
 
         switch ($columns) {
             case 0:

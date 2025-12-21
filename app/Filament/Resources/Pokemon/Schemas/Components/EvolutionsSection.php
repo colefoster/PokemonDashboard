@@ -45,7 +45,7 @@ class EvolutionsSection
                             ->hiddenLabel()
                             ->default(fn($record) => $record->getEvolutionChainData()['stage_1_name'])
                             ->size(TextSize::Large)
-                            ->color('info')
+                            ->color('primary')
                             ->alignCenter(),
 
                         ImageEntry::make('stage_1_sprite')
@@ -64,6 +64,7 @@ class EvolutionsSection
                     ->hidden(fn($record) => empty($record->getEvolutionChainData()['stage_1_method'] ?? null))
                     ->badge()
                     ->alignCenter()
+                    ->size(TextSize::Large)
                     ->color('info')
                     ->extraEntryWrapperAttributes(['style' => 'display: flex; align-items: center; justify-content: center; height: 100%;']),
 
@@ -83,7 +84,7 @@ class EvolutionsSection
                             ->default(fn($record) => $record->getEvolutionChainData()['stage_2_name'])
                             ->hiddenLabel()
                             ->size(TextSize::Large)
-                            ->color('info')
+                            ->color('primary')
                             ->alignCenter(),
                         ImageEntry::make('stage_2_sprite')
                             ->hiddenLabel()
@@ -123,7 +124,7 @@ class EvolutionsSection
                             ->hiddenLabel()
                             ->default(fn($record) => $record->getEvolutionChainData()['stage_3_name'])
                             ->size(TextSize::Large)
-                            ->color('info')
+                            ->color('primary')
                             ->alignCenter(),
 
                         ImageEntry::make('stage_3_sprite')

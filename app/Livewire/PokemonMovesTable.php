@@ -84,9 +84,4 @@ class PokemonMovesTable extends Component implements HasForms, HasTable, HasActi
             ->defaultSort('name')
             ->paginated([10, 25, 50, 100]);
     }
-
-    public function render(): View
-    {
-        return view('livewire.pokemon-moves-table');
-    }
 }

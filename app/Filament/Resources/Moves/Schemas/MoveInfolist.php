@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Moves\Schemas;
 
 use App\Filament\Resources\Moves\Schemas\Components\MoveDescriptionSection;
 use App\Filament\Resources\Moves\Schemas\Components\MoveDetailsSection;
-use App\Filament\Resources\Moves\Schemas\Components\MovePokemonSection;
+use App\Filament\Resources\Moves\Schemas\Components\LearnedByPokemonSection;
 use Filament\Schemas\Schema;
 
 class MoveInfolist
@@ -17,7 +17,7 @@ class MoveInfolist
                     ->columnSpanFull(),
                 MoveDescriptionSection::make()
                     ->columnSpanFull(),
-                MovePokemonSection::make()
+                LearnedByPokemonSection::make()
                     ->columnSpanFull(),
             ]);
     }

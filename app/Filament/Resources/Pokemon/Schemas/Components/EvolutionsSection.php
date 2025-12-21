@@ -31,6 +31,7 @@ class EvolutionsSection
                 // Stage 1
 
                 Fieldset::make('stage_1_fieldset')
+                    ->contained(false)
                     ->hiddenLabel()
                     ->columns(
                         [
@@ -69,6 +70,7 @@ class EvolutionsSection
                     ->extraEntryWrapperAttributes(['style' => 'display: flex; align-items: center; justify-content: center; height: 100%;']),
 
                 Fieldset::make('stage_2_fieldset')
+                    ->contained(false)
                     ->hiddenLabel()
                     ->hidden(fn($record) => ($record->getEvolutionChainData()['stage_count'] ?? 0) < 2)
                     ->columns(
@@ -109,6 +111,7 @@ class EvolutionsSection
                     ->extraEntryWrapperAttributes(['style' => 'display: flex; align-items: center; justify-content: center; height: 100%;']),
 
                 Fieldset::make('stage_3_fieldset')
+                    ->contained(false)
                     ->hiddenLabel()
                     ->hidden(fn($record) => ($record->getEvolutionChainData()['stage_count'] ?? 0) < 3)
                     ->columns(

@@ -90,5 +90,8 @@ class MovePokemonTable extends Component implements HasForms, HasTable, HasActio
             ->paginated([10, 25, 50, 100]);
     }
 
-
+    public function render(): View
+    {
+        return view('livewire.move-pokemon-table');
+    }
 }

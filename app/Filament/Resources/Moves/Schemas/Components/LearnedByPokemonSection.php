@@ -6,7 +6,7 @@ use App\Livewire\MovePokemonTable;
 use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 
-class MovePokemonSection
+class LearnedByPokemonSection
 {
     public static function make(): Section
     {

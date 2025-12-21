@@ -2,6 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Filament\Filters\LearnMethodFilter;
+use App\Filament\Filters\MoveClassFilter;
+use App\Filament\Filters\MoveTypeFilter;
 use App\Filament\Resources\Moves\MoveResource;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -80,8 +83,17 @@ class PokemonMovesTable extends Component implements HasForms, HasTable, HasActi
                     ->numeric()
                     ->placeholder('-'),
             ])
-
+            ->filters([
+                MoveTypeFilter::make(3, $this->pokemon),
+                MoveClassFilter::make(3),
+                LearnMethodFilter::make(2, $this->pokemon),
+            ])
             ->defaultSort('name')
             ->paginated([10, 25, 50, 100]);
+    }
+
+    public function render(): View
+    {
+        return view('livewire.pokemon-moves-table');
     }
 }

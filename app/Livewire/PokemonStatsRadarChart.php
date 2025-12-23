@@ -1,22 +1,52 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Livewire;
 
 use App\Models\Pokemon;
 use App\Providers\Filament\MyAppColors;
-use Filament\Widgets\ChartWidget;
+use Livewire\Component;
 
-class PokemonStatsRadarChart extends ChartWidget
+class PokemonStatsRadarChart extends Component
 {
-    protected  ?string $heading = 'Base Stats';
-
-    protected  ?string $maxHeight = '300px';
-
     public ?Pokemon $record = null;
 
-    protected function getData(): array
+    public function mount($record): void
     {
-        if (! $this->record) {
+        $this->record = $record;
+    }
+
+    protected function getTypeColor(): string
+    {
+        if (!$this->record) {
+            return '#3b82f6'; // Default blue
+        }
+
+        // Get the primary type (slot 1)
+        $primaryType = $this->record->types()->wherePivot('slot', 1)->first();
+
+        if (!$primaryType) {
+            return '#3b82f6'; // Default blue
+        }
+
+        $colors = MyAppColors::loadAppColors();
+        $typeName = strtolower($primaryType->name);
+
+        return $colors[$typeName] ?? '#3b82f6';
+    }
+
+    protected function hexToRgb(string $hex): array
+    {
+        $hex = ltrim($hex, '#');
+        return [
+            hexdec(substr($hex, 0, 2)),
+            hexdec(substr($hex, 2, 2)),
+            hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    public function getChartData(): array
+    {
+        if (!$this->record) {
             return [
                 'datasets' => [],
                 'labels' => [],
@@ -40,7 +70,7 @@ class PokemonStatsRadarChart extends ChartWidget
                         $this->record->specialDefenseStat ?? 0,
                         $this->record->speedStat ?? 0,
                     ],
-                    'backgroundColor' => $rgbaString,
+                    'backgroundColor' => $rgbaString, //Line fill color
                     'borderColor' => $rgbString,
                     'borderWidth' => 2,
                     'pointBackgroundColor' => $rgbString,
@@ -53,12 +83,7 @@ class PokemonStatsRadarChart extends ChartWidget
         ];
     }
 
-    protected function getType(): string
-    {
-        return 'radar';
-    }
-
-    protected function getOptions(): array
+    public function getChartOptions(): array
     {
         return [
             'scales' => [
@@ -71,12 +96,15 @@ class PokemonStatsRadarChart extends ChartWidget
                         'display' => false,
                     ],
                     'grid' => [
+                        'color' => 'rgb(75, 85, 99)', // Circular grid lines
                         'lineWidth' => 1,
                     ],
                     'angleLines' => [
+                        'color' => 'rgb(75, 85, 99)', // Lines radiating from center
                         'lineWidth' => 1,
                     ],
                     'pointLabels' => [
+                        'color' => 'rgb(75, 85, 99)', // Axis labels (HP, ATK, etc.)
                         'font' => [
                             'size' => 12,
                             'weight' => 500,
@@ -93,32 +121,8 @@ class PokemonStatsRadarChart extends ChartWidget
         ];
     }
 
-    protected function getTypeColor(): string
+    public function render()
     {
-        if (! $this->record) {
-            return '#3b82f6';
-        }
-
-        $primaryType = $this->record->types()->wherePivot('slot', 1)->first();
-
-        if (! $primaryType) {
-            return '#3b82f6';
-        }
-
-        $colors = MyAppColors::loadAppColors();
-        $typeName = strtolower($primaryType->name);
-
-        return $colors[$typeName] ?? '#3b82f6';
-    }
-
-    protected function hexToRgb(string $hex): array
-    {
-        $hex = ltrim($hex, '#');
-
-        return [
-            hexdec(substr($hex, 0, 2)),
-            hexdec(substr($hex, 2, 2)),
-            hexdec(substr($hex, 4, 2)),
-        ];
+        return view('livewire.pokemon-stats-radar-chart');
     }
 }

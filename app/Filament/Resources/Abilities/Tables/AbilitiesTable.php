@@ -37,23 +37,19 @@ class AbilitiesTable
                     ->label('Pokemon')
                     ->visible(fn() => self::$usePokemonSprites)
                     ->getStateUsing(function ($record) {
-                        // Return all pokemon sprites shuffled - let limit() handle the count
+                        // Store pokemon data as an array of arrays with sprite and URL
                         return $record->pokemon
-                            ->shuffle()
-                            ->pluck('sprite_front_default')
-                            ->filter()
+                            ->filter(fn($pokemon) => $pokemon->sprite_front_default)
+                            ->take(5)
+                            ->map(fn($pokemon) => [
+                                'sprite' => $pokemon->sprite_front_default,
+                                'url' => \App\Filament\Resources\Pokemon\PokemonResource::getUrl('view', ['record' => $pokemon]),
+                                'name' => $pokemon->name,
+                            ])
                             ->values()
                             ->toArray();
                     })
-                    ->limit(5)
-                    ->limitedRemainingText(
-                        size: 'md'
-                    )
-                    ->ring(2)
-                    ->imageSize(56)
-                    ->extraImgAttributes([
-                        'class' => 'rounded-full '
-                    ])
+                    ->view('filament.tables.columns.clickable-pokemon-sprites')
                     ->toggleable(),
                 TextColumn::make('pokemon.name')
                     ->label('Pokemon')

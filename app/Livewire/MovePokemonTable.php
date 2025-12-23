@@ -60,7 +60,8 @@ class MovePokemonTable extends Component implements HasForms, HasTable, HasActio
                     ->extraImgAttributes([
                         'class' => 'pixelated rounded-full',
                         'style' => 'image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;',
-                    ]),
+                    ])
+                    ->url(fn($record) => PokemonResource::getUrl('view', ['record' => $record])),
                 TextColumn::make('name')
                     ->label('Pokémon Name')
                     ->searchable()

@@ -29,16 +29,20 @@
             </div>
 
             {{-- Sprite Display --}}
-            @if($this->spriteUrl)
-                <div class="flex justify-center items-center p-6 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <img
-                        src="{{ $this->spriteUrl }}"
-                        alt="Pokemon sprite"
-                        class="w-auto h-auto max-w-full transition-all duration-300 ease-in-out"
-                        style="image-rendering: pixelated;"
-                    >
-                </div>
-            @endif
+            <div class="flex flex-row ">
+                <img
+                    src="{{ $this->frontSpriteUrl }}"
+                    alt="Pokemon sprite"
+                    class="w-auto h-auto  transition-all duration-300 ease-in-out"
+                    style="image-rendering: pixelated;"
+                >
+                <img
+                    src="{{ $this->backSpriteUrl }}"
+                    alt="Pokemon sprite"
+                    class="w-auto h-auto  transition-all duration-300 ease-in-out"
+                    style="image-rendering: pixelated;"
+                >
+            </div>
         </div>
     </x-filament::fieldset>
 </div>

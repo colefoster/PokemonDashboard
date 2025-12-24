@@ -13,44 +13,33 @@ class SpriteViewerSection
         return Fieldset::make('Sprites')
             ->schema([
                 Tabs::make('sprite_tabs')
-                    ->contained(false)
+                    ->contained(true)
                     ->tabs([
                         Tabs\Tab::make('Regular')
                             ->schema([
-                                Fieldset::make('regular_sprites')
-                                    ->hiddenLabel()
-                                    ->columns(2)
-                                    ->schema([
-                                        ImageEntry::make('sprite_front_default')
-                                            ->label('Front')
-                                            ->alignCenter()
-                                            ->extraImgAttributes(['style' => 'image-rendering: pixelated;']),
 
-                                        ImageEntry::make('sprite_back_default')
-                                            ->label('Back')
-                                            ->alignCenter()
-                                            ->extraImgAttributes(['style' => 'image-rendering: pixelated;']),
-                                    ]),
+                                ImageEntry::make('sprite_front_default')
+                                    ->label('Front')
+                                    ->alignCenter(),
+
+                                ImageEntry::make('sprite_back_default')
+                                    ->label('Back')
+                                    ->alignCenter(),
                             ]),
 
                         Tabs\Tab::make('Shiny')
                             ->schema([
-                                Fieldset::make('shiny_sprites')
-                                    ->hiddenLabel()
-                                    ->columns(2)
-                                    ->schema([
+
                                         ImageEntry::make('sprite_front_shiny')
                                             ->label('Front')
-                                            ->alignCenter()
-                                            ->extraImgAttributes(['style' => 'image-rendering: pixelated;']),
+                                            ->alignCenter(),
 
                                         ImageEntry::make('sprite_back_shiny')
                                             ->label('Back')
-                                            ->alignCenter()
-                                            ->extraImgAttributes(['style' => 'image-rendering: pixelated;']),
+                                            ->alignCenter(),
                                     ]),
                             ]),
-                    ]),
-            ]);
+            ])
+            ->columns(1);
     }
 }

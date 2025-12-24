@@ -42,10 +42,6 @@ class PokemonTable
                         ->defaultImageUrl(asset('/images/3x-sprite-placeholder.png'))
                         ->imageSize("20")
                         ->toggleable()
-                        ->extraImgAttributes([
-                            'class' => 'pixelated',
-                          //  'style' => 'image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;',
-                        ])
                         ->alignCenter(),
                     TextColumn::make('types.name')
                         ->label('Type')

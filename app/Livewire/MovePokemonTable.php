@@ -58,8 +58,7 @@ class MovePokemonTable extends Component implements HasForms, HasTable, HasActio
                     ->defaultImageUrl(asset('/images/3x-sprite-placeholder.png'))
                     ->size(56)
                     ->extraImgAttributes([
-                        'class' => 'pixelated rounded-full',
-                        'style' => 'image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges;',
+                        'class' => 'rounded-full',
                     ])
                     ->url(fn($record) => PokemonResource::getUrl('view', ['record' => $record])),
                 TextColumn::make('name')

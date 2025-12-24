@@ -4,8 +4,8 @@ namespace App\Filament\Resources\Pokemon\Schemas;
 
 use App\Filament\Resources\Pokemon\Schemas\Components\EvolutionsSection;
 use App\Filament\Resources\Pokemon\Schemas\Components\SpeciesDetailsSection;
+use App\Filament\Resources\Pokemon\Schemas\Components\SpriteViewerSection;
 use App\Livewire\PokemonMovesTable;
-use App\Livewire\PokemonSpriteViewer;
 use App\Livewire\PokemonStatsRadarChart;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Livewire;
@@ -18,33 +18,19 @@ class PokemonInfolist
     {
         return $schema
             ->components([
-                SpeciesDetailsSection::make()
-                    ->columnSpan([
-                        'sm' => 'full',
-                        'md' => 'full',
-                        'lg' => 1,
-                    ]),
-                Grid::make(1)
-                    ->schema([
-                        Livewire::make(PokemonSpriteViewer::class, fn($record) => ['record' => $record]),
-                        Livewire::make(PokemonStatsRadarChart::class, fn($record) => ['record' => $record]),
-                    ])
-                    ->columnSpan([
-                        'sm' => 'full',
-                        'md' => 'full',
-                        'lg' => 1,
-                    ]),
+                SpeciesDetailsSection::make(),
 
-                EvolutionsSection::make()
-                    ->columnSpanFull(),
 
-                Livewire::make(PokemonMovesTable::class, fn($record) => ['pokemon' => $record])
-                    ->columnSpanFull()
+                SpriteViewerSection::make(),
+
+
+                Livewire::make(PokemonStatsRadarChart::class, fn($record) => ['record' => $record]),
+
+
+                EvolutionsSection::make(),
+
+                Livewire::make(PokemonMovesTable::class, fn($record) => ['pokemon' => $record]),
             ])
-            ->columns([
-                'sm' => 1,
-                'md' => 1,
-                'lg' => 2,
-            ]);
+            ;
     }
 }

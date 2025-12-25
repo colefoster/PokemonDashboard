@@ -18,19 +18,33 @@ class PokemonInfolist
     {
         return $schema
             ->components([
-                SpeciesDetailsSection::make(),
+                SpeciesDetailsSection::make()
+                    ->columnSpan([
+                        'sm' => 'full',
+                        'md' => 'full',
+                        'lg' => 1,
+                    ]),
+                Grid::make(1)
+                    ->schema([
+                        SpriteViewerSection::make(),
+                        Livewire::make(PokemonStatsRadarChart::class, fn($record) => ['record' => $record]),
+                    ])
+                    ->columnSpan([
+                        'sm' => 'full',
+                        'md' => 'full',
+                        'lg' => 1,
+                    ]),
 
+                EvolutionsSection::make()
+                    ->columnSpanFull(),
 
-                SpriteViewerSection::make(),
-
-
-                Livewire::make(PokemonStatsRadarChart::class, fn($record) => ['record' => $record]),
-
-
-                EvolutionsSection::make(),
-
-                Livewire::make(PokemonMovesTable::class, fn($record) => ['pokemon' => $record]),
+                Livewire::make(PokemonMovesTable::class, fn($record) => ['pokemon' => $record])
+                    ->columnSpanFull()
             ])
-            ;
+            ->columns([
+                'sm' => 1,
+                'md' => 1,
+                'lg' => 2,
+            ]);
     }
 }

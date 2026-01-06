@@ -46,7 +46,7 @@ class ApiQueryWidget extends Widget implements HasForms, HasActions
     {
         $this->form->fill([
             'method' => 'GET',
-            'url' => 'https://pokeapi.co/api/v2/pokemon/1',
+            'url' => 'https://api.sampleapis.com/futurama/characters',
         ]);
     }
 

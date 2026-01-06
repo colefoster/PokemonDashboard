@@ -18,7 +18,7 @@ class AdminTools extends Page
 
     protected static ?int $navigationSort = 100;
 
-    public string $activeTab = 'data-importer';
+    public string $activeTab = 'api-query';
 
     public static function canAccess(): bool
     {
@@ -29,13 +29,13 @@ class AdminTools extends Page
     public function getTabs(): array
     {
         return [
-            'data-importer' => [
-                'label' => 'Data Importer',
-                'icon' => 'heroicon-o-arrow-down-tray',
-            ],
             'api-query' => [
                 'label' => 'API Tester',
                 'icon' => 'heroicon-o-beaker',
+            ],
+            'data-importer' => [
+                'label' => 'Data Importer',
+                'icon' => 'heroicon-o-arrow-down-tray',
             ],
         ];
     }
@@ -45,7 +45,7 @@ class AdminTools extends Page
         return match($this->activeTab) {
             'data-importer' => [RunSeedersWidget::class],
             'api-query' => [ApiQueryWidget::class],
-            default => [RunSeedersWidget::class],
+            default => [ApiQueryWidget::class],
         };
     }
 }

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Controller;
 use App\Models\Pokemon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 
 class PokemonController extends Controller
@@ -36,8 +38,9 @@ class PokemonController extends Controller
     }
 
     /** Get a list all Pokemon within a Smogon tier with their types and stats */
-    public function tier(string $tierId): JsonResponse{
-
+    public function format(string $tierId): JsonResponse
+    {
+        return JsonResponse::fromJsonString(Http::get("https://pkmn.github.io/smogon/data/sets/${tierId}.json"));
     }
 
     /**
@@ -73,7 +76,7 @@ class PokemonController extends Controller
             ->where('is_default', true)
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('api_id', $query);
+                    ->orWhere('api_id', $query);
             })
             ->limit(10)
             ->get();

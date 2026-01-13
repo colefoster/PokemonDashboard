@@ -13,8 +13,12 @@ Route::prefix('pokemon')->group(function () {
     Route::get('/', [PokemonController::class, 'index']);
     Route::get('/search', [PokemonController::class, 'search']);
     Route::get('/{apiId}', [PokemonController::class, 'show']);
-    Route::get('/format/{format}', [PokemonController::class, 'format']);
-
 });
 
+Route::prefix('sets')->group(function () {
+
+    Route::get('/format/{format}', [PokemonController::class, 'setsByFormat']);
+
+    Route::get('/gen/{gen}', [PokemonController::class, 'setsByGen']);
+});
 

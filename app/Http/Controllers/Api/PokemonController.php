@@ -38,9 +38,19 @@ class PokemonController extends Controller
     }
 
     /** Get a list all Pokemon within a Smogon tier with their types and stats */
-    public function format(string $tierId): JsonResponse
+    public function setsByFormat(string $tierId): JsonResponse
     {
         return JsonResponse::fromJsonString(Http::get("https://pkmn.github.io/smogon/data/sets/${tierId}.json"));
+    }
+    public function setsByGen(string $gen): JsonResponse
+    {
+        if (str_contains(strtolower($gen),"gen")){
+            return JsonResponse::fromJsonString(Http::get("https://pkmn.github.io/smogon/data/sets/${gen}.json"));
+        }
+        else{
+            return JsonResponse::fromJsonString(Http::get("https://pkmn.github.io/smogon/data/sets/gen${gen}.json"));
+
+        }
     }
 
     /**

@@ -73,7 +73,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
             }
         }
 
-        async function fetchPokemonByFormat(format = 'gen9ou') {
+        async function fetchSetsByFormat(format = 'gen9ou') {
             loading.value = true;
             error.value = null;
             const startTime = performance.now();
@@ -85,7 +85,41 @@ export const usePokemonStore = defineStore('pokemon', () => {
                     params.append('format', format);
                 }
 
-                const response = await fetch(`/api/pokemon/format/${format}`);
+                const response = await fetch(`/api/sets/format/${format}`);
+
+                console.log(response);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch Pokemon');
+                }
+
+                const data = await response.json();
+                const endTime = performance.now();
+                loadTime.value = ((endTime - startTime) / 1000).toFixed(2); // Convert to seconds
+
+                // If response is an array, it's all Pokemon
+                pokemon.value = data;
+
+            } catch (err) {
+                error.value = err.message;
+                console.error('Error fetching Pokemon:', err);
+            } finally {
+                loading.value = false;
+            }
+        }
+
+        async function fetchSetsByGen(format = 'gen9') {
+            loading.value = true;
+            error.value = null;
+            const startTime = performance.now();
+
+            try {
+                const params = new URLSearchParams();
+
+                if (gen) {
+                    params.append('gen', gen);
+                }
+
+                const response = await fetch(`/api/sets/gen/${format}`);
 
                 console.log(response);
                 if (!response.ok) {
@@ -240,7 +274,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
             isInTeam,
             loadTeamFromStorage,
 
-            fetchPokemonByFormat,
+            fetchPokemonByFormat: fetchSetsByFormat,
         };
     })
 ;

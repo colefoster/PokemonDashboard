@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PokemonController;
+use App\Http\Controllers\Api\SpriteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,3 +34,21 @@ Route::prefix('formats/{format}')->group(function () {
     Route::get('/combined/search', [PokemonController::class, 'searchCombined']);
 });
 
+// Sprite API routes (wraps GitHub raw URLs from PokeAPI/sprites)
+Route::prefix('sprites')->group(function () {
+    // Pokemon sprites
+    Route::get('/pokemon/styles', [SpriteController::class, 'pokemonStyles']);
+    Route::get('/pokemon/generations', [SpriteController::class, 'pokemonGenerations']);
+    Route::get('/pokemon/batch', [SpriteController::class, 'pokemonBatch']);
+    Route::get('/pokemon/name/{name}', [SpriteController::class, 'pokemonByName']);
+    Route::get('/pokemon/{id}', [SpriteController::class, 'pokemon'])->where('id', '[0-9]+');
+
+    // Item sprites
+    Route::get('/items/{name}', [SpriteController::class, 'item']);
+
+    // Type sprites
+    Route::get('/types/{name}', [SpriteController::class, 'type']);
+
+    // Badge sprites
+    Route::get('/badges/{name}', [SpriteController::class, 'badge']);
+});

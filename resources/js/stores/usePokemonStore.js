@@ -120,6 +120,7 @@ export const usePokemonStore = defineStore('pokemon', () => {
             const targetFormat = format || currentFormat.value;
 
             try {
+                console.log( `/api/formats/${targetFormat}/combined/search?q=${encodeURIComponent(name)}`)
                 const response = await fetch(
                     `/api/formats/${targetFormat}/combined/search?q=${encodeURIComponent(name)}`
                 );

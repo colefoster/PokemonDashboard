@@ -36,12 +36,36 @@
                 <div class="px-6 py-8">
                     <!-- Header with sprite and name -->
                     <div class="flex items-center gap-4 mb-6">
-                        <img
-                            v-if="pokemonStore.selectedPokemonData.sprites?.front_default"
-                            :src="pokemonStore.selectedPokemonData.sprites.front_default"
-                            :alt="pokemonStore.selectedPokemon"
-                            class="w-24 h-24"
-                        />
+                        <div class="flex flex-col items-center">
+                            <div class="relative w-32 h-32 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                                <img
+                                    v-if="spriteUrl"
+                                    :src="spriteUrl"
+                                    :alt="pokemonStore.selectedPokemon"
+                                    class="max-w-full max-h-full object-contain"
+                                    :class="{ 'pixelated': selectedSpriteStyle?.value === 'default' || selectedSpriteStyle?.value?.startsWith('gen') }"
+                                />
+                                <div v-else class="text-zinc-400 text-sm">No sprite</div>
+                            </div>
+                            <Select
+                                v-model="selectedSpriteStyle"
+                                :options="spriteStyleOptions"
+                                optionLabel="label"
+                                placeholder="Sprite Style"
+                                class="mt-2 w-full"
+                                size="small"
+                            />
+                            <div class="flex gap-2 mt-2">
+                                <ToggleButton
+                                    v-model="spriteShiny"
+                                    onLabel="Shiny"
+                                    offLabel="Normal"
+                                    onIcon="pi pi-star-fill"
+                                    offIcon="pi pi-star"
+                                    size="small"
+                                />
+                            </div>
+                        </div>
                         <div>
                             <h2 class="text-2xl font-bold text-zinc-950 dark:text-white">
                                 {{ pokemonStore.selectedPokemon }}
@@ -150,16 +174,85 @@
 </template>
 
 <script setup>
-import {ref} from 'vue';
+import {ref, computed, watch} from 'vue';
 import {Head} from '@inertiajs/vue3';
 import {usePokemonStore} from '../stores/usePokemonStore';
 
 import AutoComplete from 'primevue/autocomplete';
 import Button from 'primevue/button';
+import Select from 'primevue/select';
+import ToggleButton from 'primevue/togglebutton';
 
 const pokemonStore = usePokemonStore();
 const filteredPokemon = ref([]);
 const searchTerm = ref('');
+
+// Sprite options
+const spriteStyleOptions = [
+    { label: 'Default', value: 'default' },
+    { label: 'Official Artwork', value: 'official-artwork' },
+    { label: 'Pokemon HOME', value: 'home' },
+    { label: 'Dream World', value: 'dream-world' },
+    { label: 'Showdown', value: 'showdown' },
+    { label: 'Gen 1 (Red/Blue)', value: 'gen-i-red-blue' },
+    { label: 'Gen 2 (Crystal)', value: 'gen-ii-crystal' },
+    { label: 'Gen 3 (Emerald)', value: 'gen-iii-emerald' },
+    { label: 'Gen 4 (Platinum)', value: 'gen-iv-platinum' },
+    { label: 'Gen 5 (Black/White)', value: 'gen-v-black-white' },
+];
+
+const selectedSpriteStyle = ref(spriteStyleOptions[0]);
+const spriteShiny = ref(false);
+const spriteUrl = ref(null);
+
+// Fetch sprite when Pokemon or style changes
+const fetchSprite = async () => {
+    if (!pokemonStore.selectedPokemonData?.api_id) {
+        spriteUrl.value = null;
+        return;
+    }
+
+    const pokemonId = pokemonStore.selectedPokemonData.api_id;
+    const style = selectedSpriteStyle.value?.value || 'default';
+
+    let url = `/api/sprites/pokemon/${pokemonId}?`;
+    const params = new URLSearchParams();
+
+    if (spriteShiny.value) {
+        params.append('shiny', 'true');
+    }
+
+    // Handle generation-specific sprites
+    if (style.startsWith('gen-')) {
+        const parts = style.split('-');
+        const gen = parts[1]; // i, ii, iii, etc.
+        const game = parts.slice(2).join('-'); // red-blue, crystal, etc.
+        params.append('generation', gen);
+        params.append('game', game);
+    } else if (style !== 'default') {
+        params.append('style', style);
+    }
+
+    try {
+        const response = await fetch(url + params.toString());
+        const data = await response.json();
+        spriteUrl.value = data.url;
+    } catch (error) {
+        console.error('Failed to fetch sprite:', error);
+        // Fallback to stored sprite
+        spriteUrl.value = pokemonStore.selectedPokemonData.sprites?.front_default;
+    }
+};
+
+// Watch for changes to trigger sprite fetch
+watch(
+    () => pokemonStore.selectedPokemonData,
+    () => fetchSprite(),
+    { immediate: true }
+);
+
+watch(selectedSpriteStyle, () => fetchSprite());
+watch(spriteShiny, () => fetchSprite());
 
 const search = (event) => {
     const query = event.query.toLowerCase();
@@ -175,6 +268,7 @@ const onPokemonSelect = async (event) => {
 
 const clearSelection = () => {
     searchTerm.value = '';
+    spriteUrl.value = null;
     pokemonStore.clearSelection();
 };
 
@@ -241,3 +335,11 @@ const getTypeClass = (type) => {
     return typeColors[type.toLowerCase()] || 'bg-gray-500';
 };
 </script>
+
+<style scoped>
+.pixelated {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+</style>

@@ -246,16 +246,24 @@ class PokemonController extends Controller
 
     /**
      * Get base Pokemon query with common relations
+     *
+     * @param bool $defaultOnly If true, only return default forms (excludes regional variants)
      */
-    private function getPokemonQuery()
+    private function getPokemonQuery(bool $defaultOnly = true)
     {
-        return Pokemon::with([
+        $query = Pokemon::with([
             'types',
             'abilities',
             'moves',
             'stats',
             'species.evolutionChain.evolutions'
-        ])->where('is_default', true);
+        ]);
+
+        if ($defaultOnly) {
+            $query->where('is_default', true);
+        }
+
+        return $query;
     }
 
     /**
@@ -265,10 +273,12 @@ class PokemonController extends Controller
     {
         $normalizedNames = collect($names)->map(fn ($name) => $this->normalizePokemonName($name));
 
-        return $this->getPokemonQuery()
+        // Use defaultOnly: false to include regional forms (Alola, Galar, Hisui, Paldea)
+        return $this->getPokemonQuery(defaultOnly: false)
             ->where(function ($query) use ($normalizedNames) {
                 foreach ($normalizedNames as $name) {
-                    $query->orWhere('name', 'like', "%{$name}%");
+                    // Case-insensitive comparison using LOWER()
+                    $query->orWhereRaw('LOWER(name) = ?', [$name]);
                 }
             })
             ->get()

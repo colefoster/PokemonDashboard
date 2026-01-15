@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\ApiQueryWidget;
+use App\Filament\Widgets\ApiRoutesWidget;
 use App\Filament\Widgets\RunSeedersWidget;
 use Filament\Pages\Page;
 
@@ -29,10 +30,16 @@ class AdminTools extends Page
     public function getTabs(): array
     {
         return [
+            'api-routes' => [
+                'label' => 'API Routes',
+                'icon' => 'heroicon-o-queue-list',
+            ],
+
             'data-importer' => [
                 'label' => 'Data Importer',
                 'icon' => 'heroicon-o-arrow-down-tray',
             ],
+
             'api-query' => [
                 'label' => 'API Tester',
                 'icon' => 'heroicon-o-beaker',
@@ -42,8 +49,9 @@ class AdminTools extends Page
 
     public function getVisibleWidgets(): array
     {
-        return match($this->activeTab) {
+        return match ($this->activeTab) {
             'data-importer' => [RunSeedersWidget::class],
+            'api-routes' => [ApiRoutesWidget::class],
             'api-query' => [ApiQueryWidget::class],
             default => [RunSeedersWidget::class],
         };

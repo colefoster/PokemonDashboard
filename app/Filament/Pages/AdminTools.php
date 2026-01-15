@@ -19,7 +19,7 @@ class AdminTools extends Page
 
     protected static ?int $navigationSort = 100;
 
-    public string $activeTab = 'data-importer';
+    public string $activeTab = 'api-routes';
 
     public static function canAccess(): bool
     {
@@ -50,8 +50,8 @@ class AdminTools extends Page
     public function getVisibleWidgets(): array
     {
         return match ($this->activeTab) {
-            'data-importer' => [RunSeedersWidget::class],
             'api-routes' => [ApiRoutesWidget::class],
+            'data-importer' => [RunSeedersWidget::class],
             'api-query' => [ApiQueryWidget::class],
             default => [RunSeedersWidget::class],
         };

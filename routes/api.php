@@ -8,19 +8,28 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Pokemon API routes
+// Pokemon API routes (database)
 Route::prefix('pokemon')->group(function () {
     Route::get('/', [PokemonController::class, 'index']);
     Route::get('/search', [PokemonController::class, 'search']);
-    Route::get('/{apiId}', [PokemonController::class, 'show']);
-    Route::get('/format/{format}', [PokemonController::class, 'fetchPokemonInFormat']);
-
+    Route::get('/{apiId}', [PokemonController::class, 'show'])->where('apiId', '[0-9]+');
 });
 
-Route::prefix('sets')->group(function () {
+// Format/Smogon API routes
+Route::prefix('formats/{format}')->group(function () {
+    // Sets endpoints (Smogon data only)
+    Route::get('/sets', [PokemonController::class, 'getSets']);
+    Route::get('/sets/search', [PokemonController::class, 'searchSets']);
 
-    Route::get('/format/{format}', [PokemonController::class, 'setsByFormat']);
+    // Names endpoint
+    Route::get('/names', [PokemonController::class, 'getNames']);
 
-    Route::get('/gen/{gen}', [PokemonController::class, 'setsByGen']);
+    // Pokemon endpoints (database data for Pokemon in format)
+    Route::get('/pokemon', [PokemonController::class, 'getPokemonInFormat']);
+    Route::get('/pokemon/search', [PokemonController::class, 'searchPokemonInFormat']);
+
+    // Combined endpoints (sets + database data)
+    Route::get('/combined', [PokemonController::class, 'getCombined']);
+    Route::get('/combined/search', [PokemonController::class, 'searchCombined']);
 });
 

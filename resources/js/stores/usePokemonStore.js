@@ -5,6 +5,8 @@ export const usePokemonStore = defineStore('pokemon', () => {
         // State
         const pokemon = ref([]);
         const selectedPokemon = ref(null);
+        const selectedPokemonData = ref(null);
+        const selectedPokemonSets = ref(null);
         const currentFormat = ref('gen9ou');
         const loading = ref(false);
         const error = ref(null);
@@ -83,108 +85,99 @@ export const usePokemonStore = defineStore('pokemon', () => {
             }
         }
 
-        async function fetchPokemonInFormat(format = 'gen9ou') {
+        async function fetchPokemonNamesInFormat(format = 'gen9ou') {
             loading.value = true;
             error.value = null;
             currentFormat.value = format;
             const startTime = performance.now();
 
             try {
-                const params = new URLSearchParams();
+                const response = await fetch(`/api/formats/${format}/names`);
 
-                if (format) {
-                    params.append('format', format);
-                }
-
-                const response = await fetch(`/api/pokemon/format/${format}`);
-
-                console.log(response);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch Pokemon');
+                    throw new Error('Failed to fetch Pokemon names');
                 }
 
                 const data = await response.json();
-                console.log({"a": "pokemon: ", "b": data});
-
                 const endTime = performance.now();
-                loadTime.value = ((endTime - startTime) / 1000).toFixed(2); // Convert to seconds
+                loadTime.value = ((endTime - startTime) / 1000).toFixed(2);
 
-                // If response is an array, it's all Pokemon
                 pokemon.value = data;
-
             } catch (err) {
                 error.value = err.message;
-                console.error('Error fetching Pokemon:', err);
+                console.error('Error fetching Pokemon names:', err);
             } finally {
                 loading.value = false;
             }
         }
 
-        async function fetchSetsByGen(format = 'gen9') {
+        async function fetchCombinedByName(name, format = null) {
+            if (!name) return null;
+
             loading.value = true;
             error.value = null;
-            const startTime = performance.now();
+
+            const targetFormat = format || currentFormat.value;
 
             try {
-                const params = new URLSearchParams();
+                const response = await fetch(
+                    `/api/formats/${targetFormat}/combined/search?q=${encodeURIComponent(name)}`
+                );
 
-                if (gen) {
-                    params.append('gen', gen);
-                }
-
-                const response = await fetch(`/api/pokemon/`);
-                console.log(response);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch Pokemon');
+                    throw new Error('Failed to fetch Pokemon data');
                 }
 
                 const data = await response.json();
-                const endTime = performance.now();
-                loadTime.value = ((endTime - startTime) / 1000).toFixed(2); // Convert to seconds
 
-                // If response is an array, it's all Pokemon
-                pokemon.value = data;
+                // Find exact match or first result
+                const match = data.find(item =>
+                    item.name.toLowerCase() === name.toLowerCase()
+                ) || data[0];
 
+                if (match) {
+                    selectedPokemon.value = name;
+                    selectedPokemonData.value = match.pokemon;
+                    selectedPokemonSets.value = match.sets;
+                    return match;
+                }
+
+                return null;
             } catch (err) {
                 error.value = err.message;
-                console.error('Error fetching Pokemon:', err);
+                console.error('Error fetching Pokemon data:', err);
+                return null;
             } finally {
                 loading.value = false;
             }
         }
 
-         async function fetchSetsByFormat(format = 'gen9ou') {
+        async function fetchSetsByFormat(format = 'gen9ou') {
             loading.value = true;
             error.value = null;
-            const startTime = performance.now();
 
             try {
-                const params = new URLSearchParams();
+                const response = await fetch(`/api/formats/${format}/sets`);
 
-                if (format) {
-                    params.append('format', format);
-                }
-
-                const response = await fetch(`/api/sets/format/${format}`);
-
-                console.log(response);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch Pokemon');
+                    throw new Error('Failed to fetch sets');
                 }
 
                 const data = await response.json();
-                const endTime = performance.now();
-                loadTime.value = ((endTime - startTime) / 1000).toFixed(2); // Convert to seconds
-
-                // If response is an array, it's all Pokemon
-                pokemon.value = data;
-
+                return data;
             } catch (err) {
                 error.value = err.message;
-                console.error('Error fetching Pokemon:', err);
+                console.error('Error fetching sets:', err);
+                return null;
             } finally {
                 loading.value = false;
             }
+        }
+
+        function clearSelection() {
+            selectedPokemon.value = null;
+            selectedPokemonData.value = null;
+            selectedPokemonSets.value = null;
         }
         async function fetchPokemonById(apiId) {
             loading.value = true;
@@ -270,13 +263,15 @@ export const usePokemonStore = defineStore('pokemon', () => {
             return team.value.some(p => p.api_id === apiId);
         }
 
-// Load team on store initialization
-        fetchPokemonInFormat();
+// Load Pokemon names on store initialization
+        fetchPokemonNamesInFormat();
 
         return {
             // State
             pokemon,
             selectedPokemon,
+            selectedPokemonData,
+            selectedPokemonSets,
             currentFormat,
             loading,
             error,
@@ -293,15 +288,15 @@ export const usePokemonStore = defineStore('pokemon', () => {
             // Actions
             fetchPokemon,
             fetchPokemonById,
-            fetchPokemonInFormat,
+            fetchPokemonNamesInFormat,
+            fetchCombinedByName,
+            fetchSetsByFormat,
             searchPokemon,
             addToTeam,
             removeFromTeam,
             clearTeam,
+            clearSelection,
             isInTeam,
-
-            fetchSetsByFormat,
-            fetchSetsByGen,
         };
     })
 ;

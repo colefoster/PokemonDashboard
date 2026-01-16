@@ -1,13 +1,13 @@
-<div style="width: 100%; overflow: hidden;">
+<div class="w-full overflow-hidden">
     <x-filament::fieldset>
         <x-slot name="label">
             Base Stats
         </x-slot>
 
-        <div style="display: grid; grid-template-columns: 2fr 1fr; align-items: center;">
-            <div style="position: relative; height: 250px; width: 100%; overflow: hidden;">
+        <div class="grid grid-cols-[2fr_1fr] items-center gap-4">
+            <div class="relative h-64 w-full overflow-hidden">
                 <canvas
-                    style="max-width: 100%; height: 100%;"
+                    class="max-w-full h-full"
                     x-data="{
                         init() {
                             const chartData = @js($this->getChartData());
@@ -34,10 +34,10 @@
 
                                 console.log('Updating chart colors, theme:', theme, 'isDark:', isDark);
 
-                                // Use obvious test colors to verify theme switching
-                                const gridColor = !isDark ? '#000000' : '#FFFFFF'; // Green in dark, Red in light
-                                const angleLinesColor = !isDark ? '#000000' : '#FFFFFF'; // Cyan in dark, Magenta in light
-                                const labelColor = !isDark ? '#000000' : '#FFFFFF'; // Yellow in dark, Blue in light
+                                // Theme-aware colors
+                                const gridColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                                const angleLinesColor = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+                                const labelColor = isDark ? '#ffffff' : '#000000';
 
                                 // Update chart colors
                                 chartInstance.options.scales.r.grid.color = gridColor;
@@ -62,35 +62,35 @@
             </div>
 
             <div>
-                <table style="width: 100%; border-collapse: collapse;">
+                <table class="w-full border-collapse">
                     <tbody>
-                        <tr style="border-bottom: 1px solid rgb(229, 231, 235);">
-                            <td style="padding: 0.5rem 0; font-weight: 500;">HP</td>
-                            <td style="padding: 0.5rem 0; text-align: right;">{{ $record->hpStat ?? 0 }}</td>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-medium text-zinc-700 dark:text-zinc-300">HP</td>
+                            <td class="py-2 text-right text-zinc-900 dark:text-white">{{ $record->hpStat ?? 0 }}</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid rgb(229, 231, 235);">
-                            <td style="padding: 0.5rem 0; font-weight: 500;">ATK</td>
-                            <td style="padding: 0.5rem 0; text-align: right;">{{ $record->attackStat ?? 0 }}</td>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-medium text-zinc-700 dark:text-zinc-300">ATK</td>
+                            <td class="py-2 text-right text-zinc-900 dark:text-white">{{ $record->attackStat ?? 0 }}</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid rgb(229, 231, 235);">
-                            <td style="padding: 0.5rem 0; font-weight: 500;">DEF</td>
-                            <td style="padding: 0.5rem 0; text-align: right;">{{ $record->defenseStat ?? 0 }}</td>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-medium text-zinc-700 dark:text-zinc-300">DEF</td>
+                            <td class="py-2 text-right text-zinc-900 dark:text-white">{{ $record->defenseStat ?? 0 }}</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid rgb(229, 231, 235);">
-                            <td style="padding: 0.5rem 0; font-weight: 500;">SPA</td>
-                            <td style="padding: 0.5rem 0; text-align: right;">{{ $record->specialAttackStat ?? 0 }}</td>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-medium text-zinc-700 dark:text-zinc-300">SPA</td>
+                            <td class="py-2 text-right text-zinc-900 dark:text-white">{{ $record->specialAttackStat ?? 0 }}</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid rgb(229, 231, 235);">
-                            <td style="padding: 0.5rem 0; font-weight: 500;">SPD</td>
-                            <td style="padding: 0.5rem 0; text-align: right;">{{ $record->specialDefenseStat ?? 0 }}</td>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-medium text-zinc-700 dark:text-zinc-300">SPD</td>
+                            <td class="py-2 text-right text-zinc-900 dark:text-white">{{ $record->specialDefenseStat ?? 0 }}</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid rgb(229, 231, 235);">
-                            <td style="padding: 0.5rem 0; font-weight: 500;">SPE</td>
-                            <td style="padding: 0.5rem 0; text-align: right;">{{ $record->speedStat ?? 0 }}</td>
+                        <tr class="border-b border-zinc-200 dark:border-zinc-700">
+                            <td class="py-2 font-medium text-zinc-700 dark:text-zinc-300">SPE</td>
+                            <td class="py-2 text-right text-zinc-900 dark:text-white">{{ $record->speedStat ?? 0 }}</td>
                         </tr>
-                        <tr style="border-top: 2px solid rgb(229, 231, 235);">
-                            <td style="padding: 0.5rem 0; font-weight: 700;">BST</td>
-                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 700;">{{ $record->totalBaseStat ?? 0 }}</td>
+                        <tr class="border-t-2 border-zinc-300 dark:border-zinc-600">
+                            <td class="py-2 font-bold text-zinc-900 dark:text-white">BST</td>
+                            <td class="py-2 text-right font-bold text-zinc-900 dark:text-white">{{ $record->totalBaseStat ?? 0 }}</td>
                         </tr>
                     </tbody>
                 </table>

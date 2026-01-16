@@ -74,8 +74,7 @@
                     <textarea
                         readonly
                         rows="20"
-                        class="block w-full max-w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                        style="resize: vertical; min-width: 100%;"
+                        class="block w-full max-w-full min-w-full resize-y rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
                     >{{ $responseBody }}</textarea>
 
                     <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">

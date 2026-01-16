@@ -3,8 +3,10 @@
 
     <div class="min-h-screen bg-zinc-950">
         <!-- MegaMenu with Template Slots -->
-        <MegaMenu :model="menuItems" class="mb-6 border-0 bg-zinc-100 dark:bg-zinc-800" style="border-top-radius:0px !important;">
-
+        <MegaMenu :model="menuItems" class="mb-6 border-0 bg-zinc-100 dark:bg-zinc-800 !rounded-none">
+            <template #start>
+                <img width="35" height="40" src="../../../public/images/special-ball-96.png" class="h-8"/>
+            </template>
             <template #item="{ item, hasSubmenu }">
                 <a v-if="item.url" :href="item.url" :target="item.target"
                    class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors">
@@ -113,24 +115,8 @@
                         </div>
                     </div>
 
-                    <!-- Stats -->
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-zinc-950 dark:text-white mb-3">Base Stats</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            <div
-                                v-for="stat in pokemonStore.selectedPokemonData.stats"
-                                :key="stat.stat_name"
-                                class="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3"
-                            >
-                                <div class="text-xs text-zinc-500 dark:text-zinc-400 uppercase">
-                                    {{ formatStatName(stat.stat_name) }}
-                                </div>
-                                <div class="text-xl font-bold text-zinc-950 dark:text-white">
-                                    {{ stat.base_stat }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Stats Radar Chart -->
+<!-- -->
 
                     <!-- Sets -->
                     <div v-if="pokemonStore.selectedPokemonSets">
@@ -217,6 +203,7 @@ import Button from 'primevue/button';
 import Select from 'primevue/select';
 import ToggleButton from 'primevue/togglebutton';
 import MegaMenu from 'primevue/megamenu';
+import PokemonStatsRadarChart from '../Components/PokemonStatsRadarChart.vue';
 
 const pokemonStore = usePokemonStore();
 const filteredPokemon = ref([]);
@@ -477,6 +464,43 @@ watch(
 
 watch(selectedSpriteStyle, () => fetchSprite());
 watch(spriteShiny, () => fetchSprite());
+
+// Transform stats array to object for radar chart
+const transformedStats = computed(() => {
+    if (!pokemonStore.selectedPokemonData?.stats) {
+        return {
+            hp: 0,
+            attack: 0,
+            defense: 0,
+            specialAttack: 0,
+            specialDefense: 0,
+            speed: 0
+        };
+    }
+
+    const stats = pokemonStore.selectedPokemonData.stats;
+    const statMap = {};
+
+    stats.forEach(stat => {
+        statMap[stat.stat_name] = stat.base_stat;
+    });
+
+    return {
+        hp: statMap['hp'] || 0,
+        attack: statMap['attack'] || 0,
+        defense: statMap['defense'] || 0,
+        specialAttack: statMap['special-attack'] || 0,
+        specialDefense: statMap['special-defense'] || 0,
+        speed: statMap['speed'] || 0
+    };
+});
+
+// Get primary type for chart coloring
+const primaryType = computed(() => {
+    if (!pokemonStore.selectedPokemonData?.types?.length) return null;
+    // Types are sorted by slot, first one is primary
+    return pokemonStore.selectedPokemonData.types[0]?.name || null;
+});
 
 const search = (event) => {
     const query = event.query.toLowerCase();

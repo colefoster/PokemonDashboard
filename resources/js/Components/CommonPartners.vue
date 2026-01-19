@@ -19,8 +19,9 @@
                     :src="teammate.sprite"
                     :alt="teammate.name"
                     class="w-8 h-8 object-contain pixelated"
+                    @error="handleImageError($event, teammate)"
                 />
-                <div class="w-8 h-8 bg-zinc-300 dark:bg-zinc-600 rounded" v-else></div>
+                <div v-else class="w-8 h-8 bg-zinc-300 dark:bg-zinc-600 rounded flex items-center justify-center text-xs text-zinc-500">?</div>
                 <div class="flex flex-col">
                     <span class="text-sm font-medium text-zinc-900 dark:text-white">{{ teammate.name }}</span>
                     <div class="flex items-center gap-1">
@@ -66,6 +67,11 @@ const loading = ref(false);
 const formatUsage = (usage) => {
     if (usage == null) return '';
     return (usage * 100).toFixed(1) + '%';
+};
+
+const handleImageError = (event, pokemon) => {
+    // Hide the broken image
+    event.target.style.display = 'none';
 };
 
 const getTypeClass = (typeName) => {

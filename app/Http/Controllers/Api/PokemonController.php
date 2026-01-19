@@ -433,6 +433,45 @@ class PokemonController extends Controller
     }
 
     /**
+     * Convert a Pokemon name to the format used by Pokemon Showdown sprites
+     */
+    private function toShowdownSpriteName(string $name): string
+    {
+        // Convert to lowercase
+        $name = strtolower(trim($name));
+
+        // Pokemon with hyphens in their actual names (not form separators)
+        $hyphenatedPokemon = [
+            'ho-oh', 'porygon-z', 'jangmo-o', 'hakamo-o', 'kommo-o',
+            'tapu-koko', 'tapu-lele', 'tapu-bulu', 'tapu-fini',
+            'chi-yu', 'chien-pao', 'ting-lu', 'wo-chien',
+        ];
+
+        // Check if this is a Pokemon with a hyphen in its actual name
+        $normalized = preg_replace("/[^a-z0-9-]/", '', str_replace(' ', '-', $name));
+
+        foreach ($hyphenatedPokemon as $hyphenated) {
+            if (str_starts_with($normalized, $hyphenated)) {
+                // Keep the hyphen for this Pokemon
+                return $normalized;
+            }
+        }
+
+        // For other Pokemon, remove spaces and hyphens (form indicators)
+        // e.g., "Great Tusk" -> "greattusk", "Iron Valiant" -> "ironvaliant"
+        return preg_replace("/[^a-z0-9]/", '', $name);
+    }
+
+    /**
+     * Get a fallback sprite URL from Pokemon Showdown's CDN
+     */
+    private function getShowdownSpriteUrl(string $name): string
+    {
+        $spriteName = $this->toShowdownSpriteName($name);
+        return "https://play.pokemonshowdown.com/sprites/gen5/{$spriteName}.png";
+    }
+
+    /**
      * Get base Pokemon query with common relations
      *
      * @param bool $defaultOnly If true, only return default forms (excludes regional variants)
@@ -866,8 +905,11 @@ class PokemonController extends Controller
             $normalizedName = $this->normalizePokemonName($teammate['name']);
             $pokemonData = $pokemonByName->get($normalizedName);
 
+            // Use database sprite if available, otherwise fall back to Showdown CDN
+            $sprite = $pokemonData?->sprite_front_default ?? $this->getShowdownSpriteUrl($teammate['name']);
+
             return array_merge($teammate, [
-                'sprite' => $pokemonData?->sprite_front_default,
+                'sprite' => $sprite,
                 'api_id' => $pokemonData?->api_id,
                 'types' => $pokemonData?->types?->pluck('name')->toArray() ?? [],
             ]);
@@ -928,8 +970,11 @@ class PokemonController extends Controller
             $normalizedName = $this->normalizePokemonName($counter['name']);
             $pokemonData = $pokemonByName->get($normalizedName);
 
+            // Use database sprite if available, otherwise fall back to Showdown CDN
+            $sprite = $pokemonData?->sprite_front_default ?? $this->getShowdownSpriteUrl($counter['name']);
+
             return array_merge($counter, [
-                'sprite' => $pokemonData?->sprite_front_default,
+                'sprite' => $sprite,
                 'api_id' => $pokemonData?->api_id,
                 'types' => $pokemonData?->types?->pluck('name')->toArray() ?? [],
             ]);

@@ -166,6 +166,10 @@ const props = defineProps({
     format: {
         type: String,
         default: 'gen9ou'
+    },
+    initialSpread: {
+        type: Object,
+        default: null
     }
 });
 
@@ -327,6 +331,27 @@ watch(() => props.pokemon, () => {
     nature.value = null;
     allSpreads.value = [];
     filteredSpreads.value = [];
+}, { immediate: true });
+
+// Load initial spread when provided (from parent/preset)
+watch(() => props.initialSpread, (newSpread) => {
+    if (!newSpread) return;
+
+    if (newSpread.evs) {
+        evs.value = { ...evs.value, ...newSpread.evs };
+    }
+    if (newSpread.ivs) {
+        ivs.value = { ...ivs.value, ...newSpread.ivs };
+    }
+    if (newSpread.nature) {
+        // Find the nature object from our natures list or create one
+        if (typeof newSpread.nature === 'string') {
+            const found = natures.value.find(n => n.name.toLowerCase() === newSpread.nature.toLowerCase());
+            nature.value = found || { name: newSpread.nature };
+        } else {
+            nature.value = newSpread.nature;
+        }
+    }
 }, { immediate: true });
 
 // Emit updates

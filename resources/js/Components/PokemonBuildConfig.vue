@@ -185,6 +185,7 @@
             <SpreadSelector
                 :pokemon="pokemon"
                 :format="format"
+                :initial-spread="spread"
                 @update:spread="onSpreadUpdate"
             />
         </div>
@@ -223,6 +224,10 @@ const props = defineProps({
     format: {
         type: String,
         default: 'gen9ou'
+    },
+    initialConfig: {
+        type: Object,
+        default: null
     }
 });
 
@@ -347,6 +352,48 @@ watch(() => props.pokemon, () => {
     item.value = null;
     teraType.value = null;
     spread.value = null;
+}, { immediate: true });
+
+// Load initial config when a set is selected
+watch(() => props.initialConfig, async (config) => {
+    if (!config) return;
+
+    // Load moves - convert strings to objects with name property
+    if (config.moves) {
+        const newMoves = [];
+        for (let i = 0; i < 4; i++) {
+            if (config.moves[i]) {
+                newMoves[i] = { name: config.moves[i] };
+            } else {
+                newMoves[i] = null;
+            }
+        }
+        moves.value = newMoves;
+    }
+
+    // Load ability
+    if (config.ability) {
+        ability.value = { name: config.ability };
+    }
+
+    // Load item
+    if (config.item) {
+        item.value = { name: config.item };
+    }
+
+    // Load tera type
+    if (config.teraType) {
+        teraType.value = { name: config.teraType };
+    }
+
+    // Load spread (EVs, IVs, nature) - emit to SpreadSelector
+    if (config.evs || config.ivs || config.nature) {
+        spread.value = {
+            evs: config.evs || {hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0},
+            ivs: config.ivs || {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31},
+            nature: config.nature ? { name: config.nature } : null
+        };
+    }
 }, { immediate: true });
 
 // Emit config updates

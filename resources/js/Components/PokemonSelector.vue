@@ -99,26 +99,33 @@
                             <div
                                 v-for="(setData, setName) in teambuilderStore.selectedPokemonSets"
                                 :key="setName"
-                                class="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4"
+                                class="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-4 cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border-2"
+                                :class="selectedSetName === setName ? 'border-primary-500' : 'border-transparent'"
+                                @click="loadSet(setName, setData)"
                             >
-                                <h4 class="font-medium text-zinc-950 dark:text-white mb-2">{{ setName }}</h4>
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium text-zinc-950 dark:text-white">{{ setName }}</h4>
+                                    <span class="text-xs text-primary-600 dark:text-primary-400 font-medium">
+                                        {{ selectedSetName === setName ? 'Selected' : 'Click to use' }}
+                                    </span>
+                                </div>
                                 <div class="grid grid-cols-2 gap-2 text-sm">
                                     <div v-if="setData.ability">
                                         <span class="text-zinc-500 dark:text-zinc-400">Ability:</span>
                                         <span class="text-zinc-950 dark:text-white ml-1">
-                                            {{ Array.isArray(setData.ability) ? setData.ability.join(' / ') : setData.ability }}
+                                            {{ Array.isArray(setData.ability) ? setData.ability[0] : setData.ability }}
                                         </span>
                                     </div>
                                     <div v-if="setData.item">
                                         <span class="text-zinc-500 dark:text-zinc-400">Item:</span>
                                         <span class="text-zinc-950 dark:text-white ml-1">
-                                            {{ Array.isArray(setData.item) ? setData.item.join(' / ') : setData.item }}
+                                            {{ Array.isArray(setData.item) ? setData.item[0] : setData.item }}
                                         </span>
                                     </div>
                                     <div v-if="setData.nature">
                                         <span class="text-zinc-500 dark:text-zinc-400">Nature:</span>
                                         <span class="text-zinc-950 dark:text-white ml-1">
-                                            {{ Array.isArray(setData.nature) ? setData.nature.join(' / ') : setData.nature }}
+                                            {{ Array.isArray(setData.nature) ? setData.nature[0] : setData.nature }}
                                         </span>
                                     </div>
                                     <div v-if="setData.teraType || setData.teratypes">
@@ -132,7 +139,7 @@
                                     <span class="text-zinc-500 dark:text-zinc-400 text-sm">Moves:</span>
                                     <div class="flex flex-wrap gap-1 mt-1">
                                         <span
-                                            v-for="(move, idx) in formatMoves(setData.moves)"
+                                            v-for="(move, idx) in formatMoves(setData.moves).slice(0, 4)"
                                             :key="idx"
                                             class="bg-zinc-200 dark:bg-zinc-700 px-2 py-1 rounded text-xs text-zinc-950 dark:text-white"
                                         >
@@ -149,6 +156,7 @@
                         <PokemonBuildConfig
                             :pokemon="teambuilderStore.selectedPokemonData"
                             :format="teambuilderStore.currentFormat"
+                            :initial-config="selectedSetConfig"
                             @update:config="onBuildConfigUpdate"
                         />
                     </div>
@@ -189,6 +197,8 @@ const teambuilderStore = useTeambuilderStore();
 const filteredPokemon = ref([]);
 const searchTerm = ref('');
 const buildConfig = ref(null);
+const selectedSetName = ref(null);
+const selectedSetConfig = ref(null);
 
 
 // Sprite options
@@ -258,13 +268,6 @@ watch(
 watch(selectedSpriteStyle, () => fetchSprite());
 watch(spriteShiny, () => fetchSprite());
 
-// Sync format select with store
-watch(
-    () => teambuilderStore.currentFormat,
-    (newFormat) => {
-        selectedFormat.value = newFormat;
-    }
-);
 
 // Transform stats array to object for radar chart
 const transformedStats = computed(() => {
@@ -312,6 +315,8 @@ const search = (event) => {
 
 const onPokemonSelect = async (event) => {
     const selectedName = event.value?.name || event.value;
+    selectedSetName.value = null;
+    selectedSetConfig.value = null;
     await teambuilderStore.fetchCombinedByName(selectedName);
 };
 
@@ -324,11 +329,61 @@ const clearSelection = () => {
     searchTerm.value = '';
     spriteUrl.value = null;
     buildConfig.value = null;
+    selectedSetName.value = null;
+    selectedSetConfig.value = null;
     teambuilderStore.clearSelection();
 };
 
 const onBuildConfigUpdate = (config) => {
     buildConfig.value = config;
+};
+
+// Load a Smogon set into the build config
+const loadSet = (setName, setData) => {
+    selectedSetName.value = setName;
+
+    // Convert Smogon set format to build config format
+    // Take first option if arrays are present (for multiple options)
+    const getFirst = (val) => Array.isArray(val) ? val[0] : val;
+
+    // Extract moves - Smogon format can be [[move1], [move2, alt]] or [move1, move2]
+    const moves = [];
+    if (setData.moves) {
+        for (let i = 0; i < 4; i++) {
+            if (setData.moves[i]) {
+                const move = Array.isArray(setData.moves[i]) ? setData.moves[i][0] : setData.moves[i];
+                moves.push(move);
+            } else {
+                moves.push(null);
+            }
+        }
+    }
+
+    // Parse EVs if present (format: "252 Atk / 4 Def / 252 Spe" or object)
+    let evs = {hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0};
+    if (setData.evs) {
+        if (typeof setData.evs === 'object' && !Array.isArray(setData.evs)) {
+            evs = {...evs, ...setData.evs};
+        }
+    }
+
+    // Parse IVs if present
+    let ivs = {hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31};
+    if (setData.ivs) {
+        if (typeof setData.ivs === 'object' && !Array.isArray(setData.ivs)) {
+            ivs = {...ivs, ...setData.ivs};
+        }
+    }
+
+    selectedSetConfig.value = {
+        moves: moves,
+        ability: getFirst(setData.ability),
+        item: getFirst(setData.item),
+        teraType: getFirst(setData.teraType || setData.teratypes),
+        nature: getFirst(setData.nature),
+        evs: evs,
+        ivs: ivs
+    };
 };
 
 const handleAddToTeam = () => {

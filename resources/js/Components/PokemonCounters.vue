@@ -18,8 +18,9 @@
                     :src="counter.sprite"
                     :alt="counter.name"
                     class="w-8 h-8 object-contain pixelated"
+                    @error="handleImageError($event, counter)"
                 />
-                <div class="w-8 h-8 bg-red-200 dark:bg-red-900 rounded" v-else></div>
+                <div v-else class="w-8 h-8 bg-red-200 dark:bg-red-900 rounded flex items-center justify-center text-xs text-red-500">?</div>
                 <div class="flex flex-col">
                     <span class="text-sm font-medium text-zinc-900 dark:text-white">{{ counter.name }}</span>
                     <div class="flex items-center gap-1">
@@ -67,6 +68,11 @@ const formatScore = (score) => {
         return (score * 100).toFixed(1) + '%';
     }
     return score.toFixed(1) + '%';
+};
+
+const handleImageError = (event, pokemon) => {
+    // Hide the broken image
+    event.target.style.display = 'none';
 };
 
 const getTypeClass = (typeName) => {
